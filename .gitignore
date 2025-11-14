@@ -34,3 +34,20 @@ coverage
 
 # Vitest
 __screenshots__/
+# Build outputs
+release/
+dist/
+build/
+out/
+*.exe
+
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
