@@ -20,7 +20,7 @@ defineProps<{
     align-items: center;  /* Changed from center to flex-start */
     padding: 12px;  /* Reduced padding */
     background-color: var(--color-bg-secondary);
-    border-radius: 8px;
+    border-radius: 85px;
     cursor: pointer;
     transition: background 0.3s;
     width: 100%;  /* Changed from fixed width to responsive */
