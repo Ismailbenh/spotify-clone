@@ -1,14 +1,20 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useLibraryStore } from '@/stores/library'
-import songCard from '@/components/songBox.vue'
+import type { Song } from '@/stores/library'
+import songBox from '@/components/songBox.vue'
 import chevronIconRight from '@/assets/icons/chevronIconRight.vue'
 import chevronIconLeft from '@/assets/icons/chevronIconleft.vue'
+
+const props = defineProps<{
+    songs?: Song[]
+}>()
+
 const library = useLibraryStore()
 const gridRef = ref<HTMLElement|null>(null)
 
-// Card width (180px) + gap (24px) = 204px
-const scrollDistance = 204
+const displaySongs = computed(() => props.songs || library.songs)
+
 const scrollLeft = () => {
     if (gridRef.value) {
         const start = gridRef.value.scrollLeft
@@ -19,7 +25,7 @@ const scrollLeft = () => {
         const animate = (currentTime: number) => {
             const elapsed = currentTime - startTime
             const progress = Math.min(elapsed / duration, 1)
-            const easeProgress = 0.5 - Math.cos(progress * Math.PI) / 2 // easeInOutSine
+            const easeProgress = 0.5 - Math.cos(progress * Math.PI) / 2
             
             gridRef.value!.scrollLeft = start + (target - start) * easeProgress
             
@@ -42,7 +48,7 @@ const scrollRight = () => {
         const animate = (currentTime: number) => {
             const elapsed = currentTime - startTime
             const progress = Math.min(elapsed / duration, 1)
-            const easeProgress = 0.5 - Math.cos(progress * Math.PI) / 2 // easeInOutSine
+            const easeProgress = 0.5 - Math.cos(progress * Math.PI) / 2
             
             gridRef.value!.scrollLeft = start + (target - start) * easeProgress
             
@@ -55,17 +61,16 @@ const scrollRight = () => {
     }
 }
 </script>
+
 <template>
     <div class="gridContainer">
-        
         <button @click="scrollLeft" class="scrollBtn scrollBtnLeft">
             <chevronIconLeft />
         </button>
     
         <div class="songsGrid" ref="gridRef">
-            
-            <songCard 
-                v-for="song in library.songs"
+            <songBox 
+                v-for="song in displaySongs"
                 :key="song.id"
                 :song="song"
                 class="songCard"
@@ -84,6 +89,7 @@ const scrollRight = () => {
     width: 96%;
     margin: 10px;
 }
+
 .songsGrid {
     display: grid;
     grid-auto-flow: column;
@@ -96,13 +102,11 @@ const scrollRight = () => {
     border-radius: 8px;
     overflow-x: auto;
     overflow-y: hidden;
-    scroll-behavior: smooth; /* This is already here - good! */
+    scroll-behavior: smooth;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
 .songsGrid::-webkit-scrollbar {
     display: none;
 }
@@ -125,12 +129,15 @@ const scrollRight = () => {
     align-items: center;
     justify-content: center;
 }
+
 .scrollBtn:hover {
     background-color: var(--color-primary);
 }
+
 .scrollBtnLeft {
     left: 12px;
 }
+
 .scrollBtnRight {
     right: 12px;
 }

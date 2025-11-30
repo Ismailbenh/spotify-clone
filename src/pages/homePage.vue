@@ -3,8 +3,7 @@ import { ref } from 'vue'
 import {useLibraryStore} from '@/stores/library'
 import songGrid from '@/components/songGrid.vue'
 import sideBar from '@/components/sideBar.vue'
-import settings from '@/components/settings.vue'
-import profile from '@/components/profile.vue'
+
 const library = useLibraryStore() 
 
 </script>
@@ -20,7 +19,7 @@ const library = useLibraryStore()
         <sideBar />
         
             <div class="content">
-                <upperBar />
+              
                 <h2>Your fav song</h2>
                 <songGrid />
                 <h2>Popular</h2>
@@ -42,8 +41,10 @@ const library = useLibraryStore()
 
 
 <style scoped>
+
 .home {
   padding: 0 24px;
+  position:relative;
   
 }
 

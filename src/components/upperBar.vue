@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notification.ts'
 import ChevronIconLeft from '@/assets/icons/chevronIconleft.vue'
@@ -11,7 +11,8 @@ import GlassIcon from '@/assets/icons/glassIcon.vue'
 import Settings from '@/components/settings.vue'
 import Profile from '@/components/profile.vue'
 import Notification from '@/components/notification.vue'
-
+import { useLibraryStore } from '@/stores/library'
+const library = useLibraryStore()
 const router = useRouter()
 const notificationsStore = useNotificationsStore()
 
@@ -20,17 +21,32 @@ const searchInput = ref<HTMLInputElement | null>(null)
 const isSettingsOpen = ref(false)
 const isProfileOpen = ref(false)
 const isNotificationOpen = ref(false)
+const isSearchOpen = ref(false)
+const navigationHistory = ref<string[]>([])
+const currentIndex = ref(0)
+const isNavigating = ref(false)
+const canGoBack = computed(() => {
+  return currentIndex.value > 0
+})
+
+const canGoForward = computed(() => {
+  return currentIndex.value < navigationHistory.value.length - 1
+})
+
+
 
 function toggleSettings() {
   isSettingsOpen.value = !isSettingsOpen.value
   isProfileOpen.value = false
   isNotificationOpen.value = false
 }
+
 function toggleProfile() {
   isProfileOpen.value = !isProfileOpen.value
   isSettingsOpen.value = false
   isNotificationOpen.value = false
 }
+
 function toggleNotification() {
   isNotificationOpen.value = !isNotificationOpen.value
   isSettingsOpen.value = false
@@ -45,7 +61,8 @@ function onClickOutside(event: MouseEvent) {
   const profileButton = document.querySelector('.profile-button')
   const notificationEl = document.querySelector('.notification-popover')
   const notificationButton = document.querySelector('.notification-button')
-
+  const searchEl = document.querySelector('.search-popover')
+  const searchContainer = document.querySelector('.topbar-center')
   if (isSettingsOpen.value) {
     if (!settingsEl?.contains(target) && !settingsButton?.contains(target)) {
       isSettingsOpen.value = false
@@ -63,44 +80,92 @@ function onClickOutside(event: MouseEvent) {
       isNotificationOpen.value = false
     }
   }
+  if (isSearchOpen.value) {
+    if (!searchEl?.contains(target) && !searchContainer?.contains(target)) {
+      isSearchOpen.value = false
+    }
+  }
 }
 
-onMounted(() => {
-  document.addEventListener('click', onClickOutside)
-})
+
 
 onUnmounted(() => {
   document.removeEventListener('click', onClickOutside)
 })
 
 function goBack() {
-  router.back()
-}
-
+  if (canGoBack.value) {
+    isNavigating.value = true
+    currentIndex.value--
+    const path = navigationHistory.value[currentIndex.value]
+    if (path) {
+      router.push(path)
+  }}}
 function goForward() {
-  router.forward()
-}
-
-function handleSearch() {
-  if (searchQuery.value.trim()) {
-    // TODO: Implement search logic with Pinia store later
-    console.log('Searching for:', searchQuery.value)
+  if (canGoForward.value) {
+    isNavigating.value = true
+    currentIndex.value++
+    const path = navigationHistory.value[currentIndex.value]
+    if (path) {
+      router.push(path)
   }
+}}
+  
+function selectSong(songId: string) {
+  router.push({ name: 'song', params: { id: songId } })
+  searchQuery.value = ''
+  isSearchOpen.value = false
+}
+function handleSearch() {
+  library.setSearchQuery(searchQuery.value)
+  isSearchOpen.value = true
 }
 
 function onSearchButton() {
   handleSearch()
   nextTick(() => searchInput.value?.focus())
 }
+onMounted(() => {
+  document.addEventListener('click', onClickOutside)
+  
+  const currentPath = router.currentRoute.value.fullPath
+  navigationHistory.value = [currentPath]
+  currentIndex.value = 0
+  
+  router.afterEach((to, from) => {
+    if (!isNavigating.value) {
+      const newPath = to.fullPath
+      
+      if (newPath !== navigationHistory.value[currentIndex.value]) {
+        navigationHistory.value = navigationHistory.value.slice(0, currentIndex.value + 1)
+        navigationHistory.value.push(newPath)
+        currentIndex.value++
+      }
+    }
+    isNavigating.value = false
+  })
+})
 </script>
 
 <template>
   <div class="topbar">
     <div class="topbar-left">
-      <button @click="goBack" class="nav-btn" aria-label="Go back">
+      <button 
+        @click="goBack" 
+        class="nav-btn" 
+        :disabled="!canGoBack"
+        :class="{ disabled: !canGoBack }"
+        aria-label="Go back"
+      >
         <ChevronIconLeft />
       </button>
-      <button @click="goForward" class="nav-btn" aria-label="Go forward">
+      <button 
+        @click="goForward" 
+        class="nav-btn" 
+        :disabled="!canGoForward"
+        :class="{ disabled: !canGoForward }"
+        aria-label="Go forward"
+      >
         <ChevronIconRight />
       </button>
     </div>
@@ -113,10 +178,28 @@ function onSearchButton() {
         ref="searchInput"
         v-model="searchQuery"
         @keyup.enter="handleSearch"
+        @input="handleSearch"
+        @focus="isSearchOpen = true"
         type="text"
         placeholder="What do you want to listen to?"
         class="search-input"
       />
+      <transition name="fade">
+  <div v-if="isSearchOpen && library.searchResults.length > 0" class="search-popover">
+    <button 
+      v-for="song in library.searchResults" 
+      :key="song.id"
+      class="searchResultItem"
+      @click="selectSong(song.id)"
+    >
+      <img :src="song.image" :alt="song.name" class="resultImage">
+      <div class="resultInfo">
+        <p class="resultName">{{ song.name }}</p>
+        <p class="resultArtist">{{ library.getArtistById(song.artistId)?.name }}</p>
+      </div>
+    </button>
+  </div>
+</transition>
     </div>
 
     <div class="topbar-right">
@@ -135,7 +218,6 @@ function onSearchButton() {
         </button>
       </div>
 
-      <!-- Profile button (toggles profile popover) -->
       <button
         class="icon-btn profile-button"
         @click.stop="toggleProfile"
@@ -145,7 +227,6 @@ function onSearchButton() {
         <UserIcon />
       </button>
 
-      <!-- Settings button -->
       <button
         class="icon-btn settings-button"
         @click.stop="toggleSettings"
@@ -156,21 +237,18 @@ function onSearchButton() {
       </button>
     </div>
 
-    <!-- Notification Popover -->
     <transition name="fade">
       <div v-if="isNotificationOpen" class="notification-popover" @click.stop>
         <Notification />
       </div>
     </transition>
 
-    <!-- Profile Popover -->
     <transition name="fade">
       <div v-if="isProfileOpen" class="profile-popover" @click.stop>
         <Profile />
       </div>
     </transition>
 
-    <!-- Settings Popover -->
     <transition name="fade">
       <div v-if="isSettingsOpen" class="settings-popover" @click.stop>
         <Settings />
@@ -180,6 +258,92 @@ function onSearchButton() {
 </template>
 
 <style scoped>
+.search-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--color-bg-secondary);
+  border-radius: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1001;
+}
+.searchResultItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: Poppins, sans-serif;
+}
+
+.searchResultItem:hover {
+  background-color: var(--color-primary);
+}
+
+.searchResultItem:first-child {
+  border-radius: 12px 12px 0 0;
+}
+
+.searchResultItem:last-child {
+  border-radius: 0 0 12px 12px;
+}
+
+.resultImage {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.resultInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.resultName {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultArtist {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-popover::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-popover::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.search-popover::-webkit-scrollbar-thumb {
+  background: var(--color-text-secondary);
+  border-radius: 3px;
+}
+
+.search-popover::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text);
+}
 .topbar {
   position: fixed;
   top: 0;
@@ -211,6 +375,8 @@ function onSearchButton() {
   background-color: var(--color-primary);
   padding: 8px 16px;
   border-radius: 20px;
+  position: relative;
+  z-index: 101;
 }
 
 .nav-btn,
@@ -225,8 +391,14 @@ function onSearchButton() {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, opacity 0.2s;
   padding: 10px;
+}
+
+.nav-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .icon-btn-wrapper {
@@ -248,7 +420,7 @@ function onSearchButton() {
   padding: 10px;
 }
 
-.nav-btn:hover,
+.nav-btn:hover:not(.disabled),
 .icon-btn:hover {
   background-color: var(--color-primary);
 }
@@ -284,7 +456,6 @@ function onSearchButton() {
   color: var(--color-text-secondary);
 }
 
-/* Badge for notification count */
 .badge {
   position: absolute;
   top: -4px;
@@ -301,12 +472,11 @@ function onSearchButton() {
   justify-content: center;
 }
 
-/* Popovers: notification, profile, settings */
 .notification-popover {
   position: absolute;
   top: calc(100% + 8px);
   right: 168px;
-  z-index: 1000;
+  z-index: 1001;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
 }
 
@@ -314,7 +484,7 @@ function onSearchButton() {
   position: absolute;
   top: calc(100% + 8px);
   right: 96px;
-  z-index: 1000;
+  z-index: 1001;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
 }
 
@@ -322,11 +492,10 @@ function onSearchButton() {
   position: absolute;
   top: calc(100% + 8px);
   right: 24px;
-  z-index: 1000;
+  z-index: 1001;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
 }
 
-/* Fade transition */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;

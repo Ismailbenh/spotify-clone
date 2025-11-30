@@ -1,54 +1,77 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'  // ✅ Add this
+import { useLibraryStore } from '@/stores/library'
+import { usePlayerStore } from '@/stores/player'
+import type { Song } from '@/stores/library'
 import playIcon from '@/assets/icons/playIcon.vue'
 import pauseIcon from '@/assets/icons/pauseIcon.vue'
-import type { Song } from '@/stores/library'
-import { usePlayerStore } from '@/stores/player'
 
 const props = defineProps<{
     song: Song
 }>()
 
+const router = useRouter()  // ✅ Add this
+const library = useLibraryStore()
 const playerStore = usePlayerStore()
 
-const isCurrentSongPlaying = computed(() => 
+const artist = computed(() => library.getArtistById(props.song.artistId))
+const isPlaying = computed(() =>
   playerStore.currentTrack?.id === props.song.id && playerStore.isPlaying
 )
 
+// ✅ Add stopPropagation to prevent card click when clicking play
 function togglePlay(event: Event) {
-  event.stopPropagation()
-  
+  event.stopPropagation()  // ✅ Add this
   if (playerStore.currentTrack?.id === props.song.id) {
-    // Same song - toggle play/pause
     playerStore.togglePlayPause()
   } else {
-    // Different song - play new song
     playerStore.play(props.song)
   }
+}
+
+// ✅ Add navigation function
+function navigateToSong() {
+  router.push({ name: 'song', params: { id: props.song.id } })
+}
+
+// ✅ Add image error handler
+function handleImageError(event: Event) {
+  const img = event.target as HTMLImageElement
+  img.src = `https://placehold.co/200x200/1a1a1a/ffffff?text=${encodeURIComponent(props.song.name)}`
+}
+
+function formatDuration(seconds?: number) {
+  if (!seconds) return '0:00'
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 </script>
 
 <template>
-    <div class="songCard">
+    <!-- ✅ Add click handler to root element -->
+    <div class="songCard" @click="navigateToSong">
         <div class="imageContainer">
-            <img :src="song.image" :alt="song.name" class="songImage">
-            <transition name="playButtonFade">
-              <button 
-                v-if="playerStore.currentTrack?.id === song.id || true"
-                class="playButton"
-                @click="togglePlay"
-                :class="{ 'playing': isCurrentSongPlaying }"
-                :aria-label="isCurrentSongPlaying ? 'Pause' : 'Play'"
-              >
-                <component :is="isCurrentSongPlaying ? pauseIcon : playIcon" />
-              </button>
-            </transition>
+            <!-- ✅ Add error handler -->
+            <img 
+                :src="song.image" 
+                :alt="song.name" 
+                class="songImage"
+                @error="handleImageError"
+            >
+            <button class="playButton" @click="togglePlay">
+              <component :is="isPlaying ? pauseIcon : playIcon" />
+            </button>
         </div>
         <div class="songInfo">
-            <h3 class="songName">{{ song.name }}</h3>
+            <h3 class="songTitle">{{ song.name }}</h3>
+            <p class="artistName">{{ artist?.name }}</p>
+            <p class="duration">{{ formatDuration(song.duration) }}</p>
         </div>
     </div>
 </template>
+
 
 <style scoped>
 .songCard {

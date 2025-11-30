@@ -1,98 +1,124 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref,watchEffect } from 'vue'
+
+
+export interface Artist {
+  id: string
+  name: string
+  image: string
+  bio?: string
+}  
 
 export interface Song {
   id: string
   name: string
   image: string
+  artistId: string
+  duration?: number
+  album?: string
 }
 export const useLibraryStore = defineStore('library',()=>{
-    const songs = ref<Song[]>([
-        {
+  const Artists = ref<Artist[]>([
+    {
       id: '1',
-      name: 'Drake',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb4293385d324db8558179afd9'
+      name: 'The Weeknd',
+      image: 'https://placeholder.com/300?text=The+Weeknd',
+      bio: 'Canadian singer, songwriter, and record producer'
     },
     {
       id: '2',
-      name: 'Taylor Swift',
-      image: 'https://i.scdn.co/image/ab6761610000e5ebe672b5f553298dcdccb0e676'
+      name: 'Drake',
+      image: 'https://placeholder.com/300?text=Drake',
+      bio: 'Canadian rapper and singer'
     },
     {
       id: '3',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '4',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '5',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '6',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '7',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '8',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '9',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '10',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '11',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5ebe672b5f553298dcdccb0e676'
-    },
-    {
-      id: '12',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5ebe672b5f553298dcdccb0e676'
-    },
-    {
-      id: '13',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '14',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '15',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5ebe672b5f553298dcdccb0e676'
-    },
-    {
-      id: '16',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb'
-    },
-    {
-      id: '17',
-      name: 'The Weeknd',
-      image: 'https://i.scdn.co/image/ab6761610000e5ebe672b5f553298dcdccb0e676'
+      name: 'Travis Scott',
+      image: 'https://placeholder.com/300?text=Travis+Scott',
+      bio: 'American rapper and record producer'
     }
-    ])
-    return {songs}
+    
+  
+    ]
+  )
+
+  const songs = ref<Song[]>([
+        {
+      id: 'song1',
+      name: 'Blinding Lights',
+      image: 'https://variety.com/wp-content/uploads/2025/05/GettyImages-2214361797.jpg?w=1000&h=667&crop=1',
+      artistId: '1',
+      duration: 200,
+      album: 'After Hours'
+    },
+    {
+      id: 'song2',
+      name: 'Starboy',
+      image: 'https://variety.com/wp-content/uploads/2025/05/GettyImages-2214361797.jpg?w=1000&h=667&crop=1',
+      artistId: '1',
+      duration: 230,
+      album: 'Starboy'
+    },
+    {
+      id: 'song3',
+      name: 'One Dance',
+      image: 'https://cdn.britannica.com/34/258834-050-9E9EF435/rapper-drake-performs-on-stage-during-lil-baby-and-friends-birthday-celebration-2022.jpg',
+      artistId: '2',
+      duration: 213,
+      album: 'Views'
+    },
+    {
+      id: 'song4',
+      name: 'Hotline Bling',
+      image: 'https://www.billboard.com/wp-content/uploads/2025/08/drake-wireless-festival-london-night-1-2025-billboard-1800.jpg?w=1024',
+      artistId: '2',
+      duration: 246,
+      album: 'Views'
+    },
+    {
+      id: 'song5',
+      name: 'SICKO MODE',
+      image: 'https://s.hdnux.com/photos/01/36/24/51/24726083/3/ratio3x2_1920.jpg',
+      artistId: '3',
+      duration: 312,
+      album: 'Astroworld'
+    }
+  ])
+const searchQuery = ref('')
+  const searchResults = ref<Song[]>([])
+
+  watchEffect(() => {
+    if (searchQuery.value.trim() === '') {
+      searchResults.value = []
+    } else {
+      const query = searchQuery.value.toLowerCase()
+      searchResults.value = songs.value.filter(song => {
+        const songNameMatch = song.name.toLowerCase().includes(query)
+        const artist = getArtistById(song.artistId)
+        const artistNameMatch = artist?.name.toLowerCase().includes(query)
+        return songNameMatch || artistNameMatch
+      })
+    }
+  })
+
+function getSongById(id: string) {
+    return songs.value.find(song => song.id === id)
+  }
+
+  function getArtistById(id: string) {
+    return Artists.value.find(artist => artist.id === id)
+  }
+
+  function getSongsByArtist(artistId: string) {
+    return songs.value.filter(song => song.artistId === artistId)
+  }
+  function setSearchQuery(query: string) {
+    searchQuery.value = query
+  }
+  function clearSearch() {
+    searchQuery.value = ''
+    searchResults.value = []
+  }
+
+    return {songs, getSongById, getArtistById, getSongsByArtist, Artists,searchQuery,searchResults, setSearchQuery,clearSearch  }
 })
