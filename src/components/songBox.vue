@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'  // ✅ Add this
+import { useRouter } from 'vue-router'  
 import { useLibraryStore } from '@/stores/library'
 import { usePlayerStore } from '@/stores/player'
 import type { Song } from '@/stores/library'
@@ -11,7 +11,7 @@ const props = defineProps<{
     song: Song
 }>()
 
-const router = useRouter()  // ✅ Add this
+const router = useRouter() 
 const library = useLibraryStore()
 const playerStore = usePlayerStore()
 
@@ -20,9 +20,9 @@ const isPlaying = computed(() =>
   playerStore.currentTrack?.id === props.song.id && playerStore.isPlaying
 )
 
-// ✅ Add stopPropagation to prevent card click when clicking play
+//Add stopPropagation to prevent card click when clicking play
 function togglePlay(event: Event) {
-  event.stopPropagation()  // ✅ Add this
+  event.stopPropagation()  
   if (playerStore.currentTrack?.id === props.song.id) {
     playerStore.togglePlayPause()
   } else {
@@ -125,11 +125,16 @@ function formatDuration(seconds?: number) {
     z-index: 10;
     font-weight: 600;
 }
-
+.songTitle {
+    
+    
+    color: var(--color-text);
+    
+}
 .playButton:hover {
     background-color: var(--color-bg-secondary);
     transform: translate(-50%, -50%) scale(1.15);
-    box-shadow: 0 4px 12px rgba(201, 76, 50, 0.4);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
 }
 
 .playButton:active {
@@ -156,6 +161,17 @@ function formatDuration(seconds?: number) {
 
 .songInfo {
     width: 100%;
+}
+
+.artistName {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin: 4px 0;
+}
+
+.duration {
+    font-size: 13px;
+    color: var(--color-text);
 }
 
 .songName {

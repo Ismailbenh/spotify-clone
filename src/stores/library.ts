@@ -1,13 +1,12 @@
 import { defineStore } from 'pinia'
-import { ref,watchEffect } from 'vue'
-
+import { ref, watchEffect } from 'vue'
 
 export interface Artist {
   id: string
   name: string
   image: string
   bio?: string
-}  
+}
 
 export interface Song {
   id: string
@@ -16,76 +15,95 @@ export interface Song {
   artistId: string
   duration?: number
   album?: string
+  audioUrl?: string
 }
-export const useLibraryStore = defineStore('library',()=>{
-  const Artists = ref<Artist[]>([
-    {
-      id: '1',
-      name: 'The Weeknd',
-      image: 'https://placeholder.com/300?text=The+Weeknd',
-      bio: 'Canadian singer, songwriter, and record producer'
-    },
-    {
-      id: '2',
-      name: 'Drake',
-      image: 'https://placeholder.com/300?text=Drake',
-      bio: 'Canadian rapper and singer'
-    },
-    {
-      id: '3',
-      name: 'Travis Scott',
-      image: 'https://placeholder.com/300?text=Travis+Scott',
-      bio: 'American rapper and record producer'
-    }
-    
-  
-    ]
-  )
 
-  const songs = ref<Song[]>([
-        {
-      id: 'song1',
-      name: 'Blinding Lights',
-      image: 'https://variety.com/wp-content/uploads/2025/05/GettyImages-2214361797.jpg?w=1000&h=667&crop=1',
-      artistId: '1',
-      duration: 200,
-      album: 'After Hours'
-    },
-    {
-      id: 'song2',
-      name: 'Starboy',
-      image: 'https://variety.com/wp-content/uploads/2025/05/GettyImages-2214361797.jpg?w=1000&h=667&crop=1',
-      artistId: '1',
-      duration: 230,
-      album: 'Starboy'
-    },
-    {
-      id: 'song3',
-      name: 'One Dance',
-      image: 'https://cdn.britannica.com/34/258834-050-9E9EF435/rapper-drake-performs-on-stage-during-lil-baby-and-friends-birthday-celebration-2022.jpg',
-      artistId: '2',
-      duration: 213,
-      album: 'Views'
-    },
-    {
-      id: 'song4',
-      name: 'Hotline Bling',
-      image: 'https://www.billboard.com/wp-content/uploads/2025/08/drake-wireless-festival-london-night-1-2025-billboard-1800.jpg?w=1024',
-      artistId: '2',
-      duration: 246,
-      album: 'Views'
-    },
-    {
-      id: 'song5',
-      name: 'SICKO MODE',
-      image: 'https://s.hdnux.com/photos/01/36/24/51/24726083/3/ratio3x2_1920.jpg',
-      artistId: '3',
-      duration: 312,
-      album: 'Astroworld'
-    }
-  ])
-const searchQuery = ref('')
+export const useLibraryStore = defineStore('library', () => {
+  const Artists = ref<Artist[]>([])
+  const songs = ref<Song[]>([])
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+  const searchQuery = ref('')
   const searchResults = ref<Song[]>([])
+
+  
+  async function fetchSongsFromDeezer(query: string) {
+    console.log('========================================')
+    console.log('Fetching from Deezer for query:', query)
+    
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      // Map queries to search terms
+      const searchMap: Record<string, string> = {
+        'eminem': 'eminem',
+        'kanye': 'kanye west',
+        'jay-z': 'jay-z',
+        'drake': 'drake',
+        'travisscoot': 'travis scott',
+        'nicki': 'nicki minaj',
+        'sza': 'sza',
+        'juice': 'juice wrld',
+        'lil': 'lil baby',
+      }
+      
+      const searchTerm = searchMap[query.toLowerCase()] || query
+      const url = `https://api.deezer.com/search?q=${encodeURIComponent(searchTerm)}&limit=10`
+      
+      console.log(' Deezer URL:', url)
+      
+      const response = await fetch(url)
+      console.log('Response status:', response.status)
+      
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`)
+      }
+
+      const apiresponse = await response.json()
+      console.log('Deezer Response:', apiresponse)
+      console.log('Songs found:', apiresponse.data?.length || 0)
+
+      if (apiresponse.data && Array.isArray(apiresponse.data)) {
+        const deezerSongs: Song[] = apiresponse.data.map((track: any) => ({
+          id: track.id.toString(),
+          name: track.title,
+          image: track.album?.cover_medium || track.album?.cover || 'https://via.placeholder.com/200',
+          artistId: track.artist?.id.toString() || '0',
+          duration: track.duration,
+          album: track.album?.title || 'Unknown Album',
+          audioUrl: track.preview // 30-second preview
+        }))
+
+        songs.value = deezerSongs
+
+        // Extract unique artists
+        const uniqueArtists = new Map<string, Artist>()
+        deezerSongs.forEach((song: Song) => {
+          if (!uniqueArtists.has(song.artistId)) {
+            const trackData = apiresponse.data.find(
+              (t: any) => t.artist?.id.toString() === song.artistId
+            )
+            uniqueArtists.set(song.artistId, {
+              id: song.artistId,
+              name: trackData?.artist?.name || 'Unknown Artist',
+              image: trackData?.artist?.picture_medium || 'https://via.placeholder.com/300',
+              bio: 'Artist from Deezer'
+            })
+          }
+        })
+        Artists.value = Array.from(uniqueArtists.values())
+        
+        console.log('Successfully loaded', deezerSongs.length, 'songs')
+      }
+    } catch (err) {
+      console.error('ERROR:', err)
+      error.value = err instanceof Error ? err.message : 'Failed to fetch songs from Deezer'
+    } finally {
+      isLoading.value = false
+      console.log('========================================')
+    }
+  }
 
   watchEffect(() => {
     if (searchQuery.value.trim() === '') {
@@ -101,7 +119,7 @@ const searchQuery = ref('')
     }
   })
 
-function getSongById(id: string) {
+  function getSongById(id: string) {
     return songs.value.find(song => song.id === id)
   }
 
@@ -112,13 +130,28 @@ function getSongById(id: string) {
   function getSongsByArtist(artistId: string) {
     return songs.value.filter(song => song.artistId === artistId)
   }
+
   function setSearchQuery(query: string) {
     searchQuery.value = query
   }
+
   function clearSearch() {
     searchQuery.value = ''
     searchResults.value = []
   }
 
-    return {songs, getSongById, getArtistById, getSongsByArtist, Artists,searchQuery,searchResults, setSearchQuery,clearSearch  }
+  return {
+    songs,
+    getSongById,
+    getArtistById,
+    getSongsByArtist,
+    Artists,
+    searchQuery,
+    searchResults,
+    setSearchQuery,
+    clearSearch,
+    fetchSongsFromDeezer,
+    isLoading,
+    error
+  }
 })

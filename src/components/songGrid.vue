@@ -5,10 +5,10 @@ import type { Song } from '@/stores/library'
 import songBox from '@/components/songBox.vue'
 import chevronIconRight from '@/assets/icons/chevronIconRight.vue'
 import chevronIconLeft from '@/assets/icons/chevronIconleft.vue'
-
 const props = defineProps<{
-    songs?: Song[]
+    songs: Song[]
 }>()
+
 
 const library = useLibraryStore()
 const gridRef = ref<HTMLElement|null>(null)
@@ -60,15 +60,16 @@ const scrollRight = () => {
         requestAnimationFrame(animate)
     }
 }
+
 </script>
 
 <template>
-    <div class="gridContainer">
+    <div class="gridContainer" v-if="displaySongs.length > 0">
         <button @click="scrollLeft" class="scrollBtn scrollBtnLeft">
             <chevronIconLeft />
         </button>
     
-        <div class="songsGrid" ref="gridRef">
+        <div class="songsGrid" ref="gridRef" >
             <songBox 
                 v-for="song in displaySongs"
                 :key="song.id"

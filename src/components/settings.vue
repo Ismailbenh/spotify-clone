@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { usePreferencesStore } from '@/stores/preferences'
+import { computed, ref } from 'vue'
+import { useThemeStore } from '@/stores/theme'
+const themeStore = useThemeStore()
 
-const preferences = usePreferencesStore()
-const isDarkMode = ref(true)
-
+const isDarkMode = computed({
+  get: () => themeStore.theme === 'dark',
+  set: (value: boolean) => {
+    themeStore.setTheme(value ? 'dark' : 'light')
+  }
+})
 const toggleTheme = () => {
-  isDarkMode.value = !isDarkMode.value
-  preferences.setTheme(isDarkMode.value ? 'dark' : 'light')
+  themeStore.toggleTheme()
 }
+
+
 </script>
 
 <template>
@@ -24,7 +29,7 @@ const toggleTheme = () => {
                 <input 
                     type="checkbox" 
                     v-model="isDarkMode"
-                    @change="toggleTheme"
+                    
                 >
                 <span class="slider round"></span>
             </label>

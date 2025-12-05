@@ -172,7 +172,7 @@ onMounted(() => {
 
     <div class="topbar-center">
       <button class="icon-search-btn" @click="onSearchButton" aria-label="Search">
-        <GlassIcon />
+        <GlassIcon class="GlassIcon"/>
       </button>
       <input
         ref="searchInput"
@@ -365,7 +365,11 @@ onMounted(() => {
   gap: 15px;
   align-items: center;
 }
-
+.GlassIcon {
+  width: 20px;
+  height: 20px;
+  color: #ffffff;
+}
 .topbar-center {
   display: flex;
   align-items: center;
@@ -409,7 +413,7 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border-radius: 20px;
-  background: var(--color-primary);
+  background: var(--color-bg-secondary);
   border: none;
   color: var(--color-text);
   cursor: pointer;

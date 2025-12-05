@@ -34,7 +34,8 @@ const artistSongs = computed(() =>
             <div v-if="song && artist">
                 <songCard :song="song" />
                 
-                <h2>More from {{ artist.name }}</h2>
+                <h2 v-if="artistSongs.length > 0">
+                  More from {{ artist.name }}</h2>
                 <songGrid :songs="artistSongs" />
                 
                 <h2>You might also like</h2>

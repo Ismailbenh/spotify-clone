@@ -2,9 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    
-  scrollbar-width: none;
-
+    scrollbar-width: none;
 }
 :root{
     /* Light mode */
@@ -13,22 +11,25 @@
     --color-accent: #4C9A7C;
     --color-bg: #E8D4B0;
     --color-bg-secondary: #AA3C25;
-    --color-text: #FFF8E7;
+    --color-text: #000000;
     --color-text-secondary: #1E120D;
-    --color-icons: #292D32;
-
+    --color-icons: #E8D4B0;
+}
     /* Dark mode */
-    --color-dark-primary: #FF6B4A;
-    --color-dark-secondary: #E0A843;
-    --color-dark-accent: #62C7A0;
-    --color-dark-bg: #1B1410;
-    --color-dark-bg-secondary: #3A1913;
-    --color-dark-text: #F4EBDC;
-    --color-dark-text-secondary: #CBB8A1;
-    --color-dark-icons: #EADFCC;
+[data-theme="dark"] {
+    
+    --color-primary: #1E3A8A;        /* deep cobalt blue */
+    --color-secondary: #1E40AF;      /* bold royal blue */
+    --color-accent: #38BDF8;         /* bright sky/cyan accent */
+    --color-bg: #0B1120;             /* near-black navy background */
+    --color-bg-secondary: #111B2E;   /* elevated dark blue surface */
+    --color-text: #ffffff;           /* pale blue-gray text */
+    --color-text-secondary: #ffffff; /* muted slate text */
+    --color-icons: #ffffff;          /* soft neutral blue-gray icons */
 }
 body{
     background-color: var(--color-bg);
+
     font-family:poppins, sans-serif;
     font-size: 16px;
 }

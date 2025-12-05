@@ -30,7 +30,7 @@ aside {
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background-color: var(--color-bg-secondary);
+    background-color: var(--color-icons);
     border: none;
     font-size: 24px;
     cursor: pointer;

@@ -1,14 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import {useLibraryStore} from '@/stores/library'
+import { ref, onMounted } from 'vue'
+import { useLibraryStore } from '@/stores/library'
+import type { Song } from '@/stores/library'
 import songGrid from '@/components/songGrid.vue'
 import sideBar from '@/components/sideBar.vue'
 
+const eminemSongs = ref<Song[]>([])
+const travisscootSongs = ref<Song[]>([])
+const szaSongs = ref<Song[]>([])
+const drakeSongs = ref<Song[]>([])
 const library = useLibraryStore() 
 
+onMounted(async()=>{
+    await library.fetchSongsFromDeezer('eminem')  
+    eminemSongs.value = library.songs
+    
+    await library.fetchSongsFromDeezer('travisscoot')  
+    travisscootSongs.value = library.songs
+    
+    await library.fetchSongsFromDeezer('sza')  
+    szaSongs.value = library.songs
+    
+    await library.fetchSongsFromDeezer('drake')  
+    drakeSongs.value = library.songs
+})
 </script>
-
-
 
 
 
@@ -19,16 +35,28 @@ const library = useLibraryStore()
         <sideBar />
         
             <div class="content">
-              
-                <h2>Your fav song</h2>
-                <songGrid />
-                <h2>Popular</h2>
-                <songGrid />
-                <h2>Popular</h2>
-                <songGrid />
-                <h2>Popular</h2>
-                <songGrid />
-            </div>
+      <!-- Show loading state -->
+      
+      
+      <!-- Show error state -->
+      <div v-if="library.error" class="error">{{ library.error }}</div>
+      
+      <!-- Show songs -->
+      <div v-if="!library.isLoading && library.songs.length > 0">
+        <h2>drake</h2>
+        <songGrid :songs="drakeSongs" />
+        <h2>eminem</h2>
+        <songGrid :songs="eminemSongs" />
+        
+        <h2>travis</h2>
+        <songGrid :songs="travisscootSongs" />
+        
+        <h2>kendrick</h2>
+        <songGrid :songs="szaSongs" />
+        
+        
+      </div>
+    </div>
            
     </div>
     
