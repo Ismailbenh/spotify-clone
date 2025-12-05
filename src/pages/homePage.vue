@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted ,computed } from 'vue'
 import { useLibraryStore } from '@/stores/library'
 import type { Song } from '@/stores/library'
 import songGrid from '@/components/songGrid.vue'
 import sideBar from '@/components/sideBar.vue'
+import { usePlayliststore } from '@/stores/playlist'
 
 const eminemSongs = ref<Song[]>([])
 const travisscootSongs = ref<Song[]>([])
 const szaSongs = ref<Song[]>([])
 const drakeSongs = ref<Song[]>([])
 const library = useLibraryStore() 
+const playlistStore = usePlayliststore()
 
+const playlistCount = computed(() => playlistStore.playlist.length)
 onMounted(async()=>{
     await library.fetchSongsFromDeezer('eminem')  
     eminemSongs.value = library.songs
@@ -30,12 +33,12 @@ onMounted(async()=>{
 
 
 <template>
-  
+   
     <div class="home">
         <sideBar />
         
             <div class="content">
-      <!-- Show loading state -->
+      
       
       
       <!-- Show error state -->

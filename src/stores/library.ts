@@ -34,8 +34,8 @@ export const useLibraryStore = defineStore('library', () => {
     isLoading.value = true
     error.value = null
     
-    try {
-      // Map queries to search terms
+    try { 
+      
       const searchMap: Record<string, string> = {
         'eminem': 'eminem',
         'kanye': 'kanye west',

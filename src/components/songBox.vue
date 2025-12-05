@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'  
 import { useLibraryStore } from '@/stores/library'
 import { usePlayerStore } from '@/stores/player'
+import { usePlayliststore } from '@/stores/playlist'
 import type { Song } from '@/stores/library'
 import playIcon from '@/assets/icons/playIcon.vue'
 import pauseIcon from '@/assets/icons/pauseIcon.vue'
@@ -14,7 +15,7 @@ const props = defineProps<{
 const router = useRouter() 
 const library = useLibraryStore()
 const playerStore = usePlayerStore()
-
+const playlistStore = usePlayliststore()
 const artist = computed(() => library.getArtistById(props.song.artistId))
 const isPlaying = computed(() =>
   playerStore.currentTrack?.id === props.song.id && playerStore.isPlaying
@@ -29,13 +30,14 @@ function togglePlay(event: Event) {
     playerStore.play(props.song)
   }
 }
-
-// ✅ Add navigation function
+function addsongToPlaylist(event: Event) {
+    event.stopPropagation()
+  playlistStore.addSongToPlaylist(props.song)
+}
 function navigateToSong() {
   router.push({ name: 'song', params: { id: props.song.id } })
 }
 
-// ✅ Add image error handler
 function handleImageError(event: Event) {
   const img = event.target as HTMLImageElement
   img.src = `https://placehold.co/200x200/1a1a1a/ffffff?text=${encodeURIComponent(props.song.name)}`
@@ -50,10 +52,8 @@ function formatDuration(seconds?: number) {
 </script>
 
 <template>
-    <!-- ✅ Add click handler to root element -->
     <div class="songCard" @click="navigateToSong">
         <div class="imageContainer">
-            <!-- ✅ Add error handler -->
             <img 
                 :src="song.image" 
                 :alt="song.name" 
@@ -63,6 +63,12 @@ function formatDuration(seconds?: number) {
             <button class="playButton" @click="togglePlay">
               <component :is="isPlaying ? pauseIcon : playIcon" />
             </button>
+            <button class="addButton" @click="addsongToPlaylist">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <line x1="12" y1="5" x2="12" y2="19"></line>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+  </svg>
+</button>
         </div>
         <div class="songInfo">
             <h3 class="songTitle">{{ song.name }}</h3>
@@ -198,5 +204,43 @@ function formatDuration(seconds?: number) {
 .playButtonFade-leave-to {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.8);
+}
+.button {
+    margin-top: 8px;
+    padding: 6px 12px;
+    background-color: var(--color-accent);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+.addButton {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.addButton:hover {
+    background-color: var(--color-primary);
+    transform: scale(1.1);
+}
+
+.songCard:hover .addButton {
+    opacity: 1;
 }
 </style>

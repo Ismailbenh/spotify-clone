@@ -11,18 +11,19 @@ const library = useLibraryStore()
 
 
 
-const song = computed(() => {
+const choosenSong = computed(() => {
   const id = route.params.id as string
   return library.getSongById(id)
 })
 
 const artist = computed(() => 
-  song.value ? library.getArtistById(song.value.artistId) : null
+  choosenSong.value ? library.getArtistById(choosenSong.value.artistId) : null
 )
 
 const artistSongs = computed(() => 
-  song.value ? library.getSongsByArtist(song.value.artistId).filter(s => s.id !== song.value?.id) : []
+  choosenSong.value ? library.getSongsByArtist(choosenSong.value.artistId).filter(s => s.id !== choosenSong.value?.id) : []
 )
+
 </script>
 
 <template>
@@ -31,15 +32,15 @@ const artistSongs = computed(() =>
         
         <div class="content">
             
-            <div v-if="song && artist">
-                <songCard :song="song" />
+            <div v-if="choosenSong && artist">
+                <songCard :song="choosenSong" />
                 
                 <h2 v-if="artistSongs.length > 0">
                   More from {{ artist.name }}</h2>
                 <songGrid :songs="artistSongs" />
                 
                 <h2>You might also like</h2>
-                <songGrid />
+                <songGrid :songs="[]" />
             </div>
             
             <div v-else class="error">
